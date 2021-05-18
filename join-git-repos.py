@@ -263,6 +263,20 @@ def getlog(commands, branch, repo_id):
                 cmd2 = commands[k + 1]
                 if cmd2[:6] == 'from :':
                     parent_mark = 'mark :' + cmd2[6:]
+            elif (cmd[:7] == 'commit ') and (cmd[7:] in ref_names):
+                cmd2_idx = k + 2
+                # 'author' (optional) comes after 'mark'.
+                if commands[cmd2_idx][:7] == 'author ':
+                    cmd2_idx = cmd2_idx + 1
+                # 'committer' (required) comes after 'author'.
+                time_stamp = extracttimestamp(commands[cmd2_idx])
+                cmd2_idx = cmd2_idx + 2
+
+                log.append({'mark': commands[k + 1], 'time': time_stamp, 'id': repo_id})
+
+                # 'from' (optional) comes after 'committer' and 'data'.
+                if commands[cmd2_idx][:5] == 'from ':
+                    parent_mark = 'mark ' + commands[cmd2_idx][5:]
 
         # Find the next parent commit.
         elif (cmd[:7] == 'commit ') and (commands[k + 1] == parent_mark):
